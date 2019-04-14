@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import fi.iki.elonen.NanoHTTPD;
@@ -24,37 +25,42 @@ public class HttpHandler extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
-        String msg = "<html><body>";
-        Map<String, String> parms = session.getParms();
-        if (parms.get("querystring") == null) {
-        	msg += "<h1>Template checker</h1>\n";
-            msg += "<form action='?' method='get'>\n  <p>Please input string to check: <input type='text' name='querystring'>" + 
-            		" <input type='checkbox' name='userfriendly' value='true'> User friendly mode (uncheck for raw JSON)<br></p>\n" + "</form>\n";
-        } else if("true".equals(parms.get("userfriendly"))) {
-        	// Check template
-        	final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try (PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
-                App.processInput(parms.get("querystring"), ps);
-            } catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-            String data = new String(baos.toByteArray(), StandardCharsets.UTF_8);
-            
-            for(String line : data.split("\n")) {
-                msg += "<p>" + line + "</p>";
+    	try {
+            String msg = "<html><body>";
+            Map<String, String> parms = session.getParms();
+            if (parms.get("querystring") == null) {
+            	msg += "<h1>Template checker</h1>\n";
+                msg += "<form action='?' method='get'>\n  <p>Please input string to check: <input type='text' name='querystring'>" + 
+                		" <input type='checkbox' name='userfriendly' value='true'> User friendly mode (uses outdated processing method)<br></p>\n" + "</form>\n";
+            } else if("true".equals(parms.get("userfriendly"))) {
+            	// Check template
+            	final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                try (PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
+                	InputProcessing.legacyProcessInput(parms.get("querystring"), ps);
+                } catch (UnsupportedEncodingException e) {
+    				e.printStackTrace();
+    			}
+                String data = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+                
+                for(String line : data.split("\n")) {
+                    msg += "<p>" + line + "</p>";
+                }
+                try {
+                	msg += "<p>" + InputProcessing.legacyProcessInput(parms.get("querystring"), null).getJsonOutputObject().toString() + "</p>";
+                }
+                catch(Exception ex) {
+                	ex.printStackTrace();
+                }
             }
-            try {
-            	msg += "<p>" + App.processInput(parms.get("querystring"), null).getJsonOutputObject().toString() + "</p>";
+            else {
+            	JsonArray js = InputProcessing.toJson(InputProcessing.process(parms.get("querystring")));
+            	msg += "<p>" + js.toString() + "</p>";
             }
-            catch(Exception ex) {
-            	ex.printStackTrace();
-            }
-        }
-        else {
-        	JsonObject js = App.processInput(parms.get("querystring"), null).getJsonOutputObject();
-        	msg += "<p>" + "result: " + js.toString() + "</p>";
-        	
-        }
-        return newFixedLengthResponse(msg + "</body></html>");
+            return newFixedLengthResponse(msg + "</body></html>");
+    	}
+    	catch(Exception ex) {
+    		ex.printStackTrace();
+    		return null;
+    	}
     }
 }

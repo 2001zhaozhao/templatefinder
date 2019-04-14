@@ -74,7 +74,7 @@ public class TemplateString {
 	public String toImportantInfoString() {
 		String string = this.string.replace("\n", " ");
 		String trimmedString = string.length() >= 60 ? (string.substring(0,60) + "...") : string;
-		return trimmedString + "[" + tf.templateName + "]" + variables;
+		return trimmedString + "[" + tf.getTemplateName() + "]" + variables;
 	}
 	
 	public static class VarData {
@@ -109,6 +109,7 @@ public class TemplateString {
 			}
 			
 			JsonObject varObject = new JsonObject();
+			varObject.add("index", new JsonPrimitive(index));
 			varObject.add("choice", new JsonPrimitive(variable.choice));
 			varObject.add("dropdown", tf.variableData.get(index).variableRoot);
 			
@@ -122,7 +123,7 @@ public class TemplateString {
 		JsonArray arr = getJsonVariableArray();
 		JsonObject out = new JsonObject();
 		out.add("dropdowns", arr);
-		out.add("name", new JsonPrimitive(tf.templateName));
+		out.add("name", new JsonPrimitive(tf.getTemplateName()));
 		return out;
 	}
 }

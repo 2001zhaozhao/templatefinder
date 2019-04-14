@@ -9,24 +9,32 @@ import java.util.ArrayList;
  */
 public class TemplateFormat {
 	public String formatName;
-	public String templateName;
+	public Template template;
 	public ItemProgression baseProgression;
 	public ArrayList<ItemVariable> variableData = new ArrayList<>();
 	
-	public TemplateFormat(String templateName, String formatName) {
-		this.templateName = templateName;
+	public TemplateFormat(Template template, String formatName) {
+		this.template = template;
 		this.formatName = formatName;
 		baseProgression = new ItemProgression();
 	}
 	
+	/**
+	 * Convenience method that returns the name of the parent template.
+	 * @return
+	 */
+	public String getTemplateName() {
+		return template.getName();
+	}
+	
 	@Override
 	public boolean equals(Object o) {
-		return (o instanceof TemplateFormat) && ((TemplateFormat) o).templateName.equals(templateName) && ((TemplateFormat) o).formatName.equals(formatName);
+		return (o instanceof TemplateFormat) && ((TemplateFormat) o).template.equals(template) && ((TemplateFormat) o).formatName.equals(formatName);
 	}
 	
 	@Override
 	public int hashCode() {
-		return templateName.hashCode() + (formatName.hashCode() << 16);
+		return template.templateName.hashCode() + (formatName.hashCode() << 16);
 	}
 	
 }

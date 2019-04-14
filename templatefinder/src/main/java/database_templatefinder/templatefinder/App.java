@@ -46,6 +46,9 @@ public class App {
 	public static HashMap<String, HashMap<TemplateString, Double>> stringWeightsAcrossTemplates = new HashMap<>();
 	
 	public static final String BASE_FORMAT = "English";
+	
+	// TODO Word tenses
+	//Separate sentence 
 
 	public static void main( String[] args )
 	{
@@ -109,7 +112,7 @@ public class App {
 							if(tfEntry.getValue().isJsonObject()) {
 								String formatName = tfEntry.getKey();
 								JsonObject tfObj = tfEntry.getValue().getAsJsonObject();
-								TemplateFormat tf = new TemplateFormat(t.getName(), formatName);
+								TemplateFormat tf = new TemplateFormat(t, formatName);
 								
 								// baseProgression
 								tf.baseProgression = new ItemProgression(Item.getItemListFromJson(tf, tfObj.get("content").getAsJsonArray()));
@@ -260,46 +263,8 @@ public class App {
 			System.out.println("Please input the string to check.");
 			String line = scanner.nextLine();
 			
-			processInput(line, System.out);
+			InputProcessing.legacyProcessInput(line, System.out);
 		}
-	}
-	
-	public static TemplateString processInput(String input, PrintStream ps) {
-		// Call compute functions
-		HashMap<TemplateString, Double> weight = TFIDFEngine.getFinalWeight(input);
-		
-		// Calculate most appropriate template
-		TemplateString maxTemplate = null;
-		double max = -1;
-		TreeSet<Entry<TemplateString, Double>> msgSet = new TreeSet<>(new Comparator<Entry<TemplateString, Double>>()  {
-			@Override
-			public int compare(Entry<TemplateString, Double> o1, Entry<TemplateString, Double> o2) {
-				if(o1.getValue() == o2.getValue()) return 0;
-				if(o1.getValue() > o2.getValue()) return 1;
-				return -1;
-			}
-		});
-		for(Entry<TemplateString, Double> entry : weight.entrySet()) {
-			if(entry.getKey() == null) continue;
-			if(entry.getValue() > max) {
-				maxTemplate = entry.getKey();
-				max = entry.getValue();
-			}
-			msgSet.add(entry);
-		}
-		
-		// Debug
-		int count = 0;
-		if(ps != null) ps.println("!!!!! Top 100 Templates: !!!!!");
-		for(Entry<TemplateString, Double> entry : msgSet) {
-			count++;
-			if(count < msgSet.size() - 100) continue; // Only count the top 100
-			if(ps != null) ps.println(((int) (entry.getValue() * 1000000)) / 1000000.0 + " | " + entry.getKey().toImportantInfoString());
-		}
-		
-		if(ps != null) ps.println("Most likely template:   " + maxTemplate);
-		
-		return maxTemplate;
 	}
 
 }

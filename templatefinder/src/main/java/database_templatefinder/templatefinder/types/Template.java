@@ -60,6 +60,15 @@ public class Template extends HashMap<String, TemplateFormat> {
 		return new TemplateSet(this);
 	}
 	
+	public int hashCode() {
+		return templateName.hashCode();
+	}
+	
+	public boolean equals(Object o) {
+		if(!(o instanceof Template)) return false;
+		return templateName.equals(((Template) o).templateName);
+	}
+	
 	private static final long serialVersionUID = 3977739026399250576L;
 	
 	/**

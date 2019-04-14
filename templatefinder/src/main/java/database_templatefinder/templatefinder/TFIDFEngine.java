@@ -11,6 +11,7 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import database_templatefinder.templatefinder.output.OutputWeight;
 import database_templatefinder.templatefinder.types.*;
 import database_templatefinder.templatefinder.types.TemplateString.VarData;
 
@@ -183,6 +184,9 @@ public class TFIDFEngine {
 		return out;
 	}
 	
+	public static final double STRING_WEIGHT_WITHIN_TEMPLATE_MULTIPLIER = 10;
+	public static final double STRING_WEIGHT_ACROSS_TEMPLATES_MULTIPLIER = 10;
+	
 	/**
 	 * Use "idf" for each word to modify all word weights based on how many strings in the list the word appears in
 	 * @param stringWeights
@@ -203,7 +207,7 @@ public class TFIDFEngine {
 			// Divide the weights
 			double divisor = ((appearances * 1.0 + 1) / count);
 			for(Entry<TemplateString, Double> tEntry : templateWeightsMap.entrySet()) {
-				tEntry.setValue(tEntry.getValue() / divisor);
+				tEntry.setValue(tEntry.getValue() / divisor * STRING_WEIGHT_WITHIN_TEMPLATE_MULTIPLIER);
 			}
 		}
 	}
@@ -228,7 +232,7 @@ public class TFIDFEngine {
 			// Divide the weights
 			double divisor = ((appearances * 1.0 + 1) / count);
 			for(Entry<TemplateString, Double> tEntry : templateWeightsMap.entrySet()) {
-				tEntry.setValue(tEntry.getValue() / divisor);
+				tEntry.setValue(tEntry.getValue() / divisor * STRING_WEIGHT_ACROSS_TEMPLATES_MULTIPLIER);
 			}
 		}
 	}
@@ -316,11 +320,11 @@ public class TFIDFEngine {
 					if(!templateWeight.containsKey(template))
 						templateWeight.put(template, 0d);
 					double current = templateWeight.get(template);
-					templateWeight.put(template, (current+weight) * (current+weight) / Math.sqrt((current*current) + (weight*weight)));
+					templateWeight.put(template, (current+weight) * (current+weight) / (Math.sqrt((current*current) + (weight*weight)) + Double.MIN_NORMAL));
 				}
 			}
 		}
-		
+
 		return templateWeight;
 	}
 	
@@ -372,7 +376,7 @@ public class TFIDFEngine {
 		return out;
 	}
 	
-	public static HashMap<TemplateString, Double> getFinalWeight(String input) {
+	public static HashMap<TemplateString, OutputWeight> getFinalWeight(String input) {
 		HashMap<Template, Double> templateWeight = getTemplateWeight(input);
 		HashMap<TemplateString, Double> stringWeightInTemplate = getStringWeightInTemplate(input);
 		HashMap<TemplateString, Double> stringWeightAcrossTemplates = getStringWeightForAllTemplates(input);
@@ -394,12 +398,14 @@ public class TFIDFEngine {
 		// The greatest weight / length of the weight vector is the weighting for the in-template values
 		// This is because if the winning template is winning by a lot, we want to compare with other strings in the same template
 		// since we are fairly sure which template the string is from - and vice versa.
-		double inTemplateWeight = max / Math.sqrt(lengthSquaredOfTemplateWeights + Double.MIN_VALUE);
+		double inTemplateWeight = max / Math.sqrt(lengthSquaredOfTemplateWeights + Double.MIN_NORMAL);
 		
-		HashMap<TemplateString, Double> out = new HashMap<TemplateString, Double>();
+		HashMap<TemplateString, OutputWeight> out = new HashMap<>();
 		
 		for(TemplateString tStr : stringWeightInTemplate.keySet()) {
-			double weight = (inTemplateWeight * stringWeightInTemplate.get(tStr)) + ((1 - inTemplateWeight) * stringWeightAcrossTemplates.get(tStr));
+			double templateWeightComponent = templateWeight.containsKey(tStr.tf.template) ? templateWeight.get(tStr.tf.template) : 0;
+			OutputWeight weight = new OutputWeight(stringWeightInTemplate.get(tStr), stringWeightAcrossTemplates.get(tStr), templateWeightComponent, inTemplateWeight);
+			
 			out.put(tStr, weight);
 		}
 		
