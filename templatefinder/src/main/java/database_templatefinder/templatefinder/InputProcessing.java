@@ -102,7 +102,7 @@ public class InputProcessing {
 					newSection.output = entry.getKey().string;
 					newSection.outputSource = entry.getKey();
 					newSection.outputWeight = entry.getValue();
-					
+
 					out.add(newSection);
 				}
 			}
@@ -154,7 +154,7 @@ public class InputProcessing {
 		endQueue.addAll(sections);
 		
 		Link currentBestCompleteLink = new Link();
-		while((!beginQueue.isEmpty()) && (!endQueue.isEmpty())) {
+		while((!beginQueue.isEmpty()) || (!endQueue.isEmpty())) {
 			// Find whether a new begin or new end is first
 			boolean end;
 			if(beginQueue.isEmpty()) {
@@ -164,12 +164,13 @@ public class InputProcessing {
 				end = false;
 			}
 			else {
-				end = endQueue.peek().section.endIndex <= beginQueue.peek().section.beginIndex;
+				end = endQueue.peek().section.endIndex - 1 <= beginQueue.peek().section.beginIndex;
 			}
 			
 			if(end) {
 				// For ending, if the current link is already better than this one, ignore, otherwise replace the best link with the stored link
 				SectionStorage section = endQueue.poll();
+				//System.out.println(section.bestLinkAtStart.totalWeight);
 				if(section.bestLinkAtStart.totalWeight + section.weight > currentBestCompleteLink.totalWeight) {
 					currentBestCompleteLink = new Link(section.bestLinkAtStart, section.section, section.weight);
 				}
@@ -178,9 +179,10 @@ public class InputProcessing {
 				// For beginning, store the current link
 				SectionStorage section = beginQueue.poll();
 				section.bestLinkAtStart = currentBestCompleteLink;
+				//System.out.println(currentBestCompleteLink.toList());
 			}
 		}
-		
+
 		// Return the weight-maximizing set of sections
 		return currentBestCompleteLink.toList();
 	}
