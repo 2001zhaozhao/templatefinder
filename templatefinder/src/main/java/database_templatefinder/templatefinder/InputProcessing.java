@@ -58,7 +58,7 @@ public class InputProcessing {
 		for(Entry<TemplateString, Double> entry : msgSet) {
 			count++;
 			if(count < msgSet.size() - 100) continue; // Only count the top 100
-			if(ps != null) ps.println(((int) (entry.getValue() * 1000000)) / 1000000.0 + " | " + entry.getKey().toImportantInfoString());
+			if(ps != null) ps.println(((long) (entry.getValue() * 1000000)) / 1000000.0 + " | " + entry.getKey().toImportantInfoString());
 		}
 		
 		if(ps != null) ps.println("Most likely template:   " + maxTemplate);
