@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -60,6 +61,10 @@ public class App {
 
 	public static void main( String[] args )
 	{
+		HashSet<String> argsSet = new HashSet<>();
+		for(String s : args) argsSet.add(s);
+		boolean jsonInterface = argsSet.contains("json");
+		
 		long startTime = System.currentTimeMillis();
 
 		// Temp variables to use in the loading process
@@ -430,19 +435,28 @@ public class App {
 		TFIDFEngine.applySubstitutionToWeights(stringWeightsAcrossTemplates, anywhereSubstitutionWeights);
 		
 		// Start web server
-		/*try {
-			new HttpHandler();
-		} catch (IOException e) {
-			System.err.println("Couldn't start web server:\n" + e);
-		}*/
+		if(!jsonInterface) {
+			try {
+				new HttpHandler();
+			} catch (IOException e) {
+				System.err.println("Couldn't start web server:\n" + e);
+			}
+		}
 		
 		// Interactive cmdline starts here
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		while(true) {
-			String line = scanner.nextLine();
-			JsonArray js = InputProcessing.toJson(InputProcessing.process(line));
-			System.out.print(js.toString());
+			if(jsonInterface) {
+				String line = scanner.nextLine();
+				JsonArray js = InputProcessing.toJson(InputProcessing.process(line));
+				System.out.print(js.toString());
+			}
+			else {
+				System.out.println("Please input the string to check.");
+				String line = scanner.nextLine();
+				InputProcessing.legacyProcessInput(line, System.out);
+			}
 		}
 	}
 	
