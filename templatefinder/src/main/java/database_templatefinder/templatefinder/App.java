@@ -430,20 +430,19 @@ public class App {
 		TFIDFEngine.applySubstitutionToWeights(stringWeightsAcrossTemplates, anywhereSubstitutionWeights);
 		
 		// Start web server
-		try {
+		/*try {
 			new HttpHandler();
 		} catch (IOException e) {
 			System.err.println("Couldn't start web server:\n" + e);
-		}
+		}*/
 		
 		// Interactive cmdline starts here
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		while(true) {
-			System.out.println("Please input the string to check.");
 			String line = scanner.nextLine();
-			
-			InputProcessing.legacyProcessInput(line, System.out);
+			JsonArray js = InputProcessing.toJson(InputProcessing.process(line));
+			System.out.print(js.toString());
 		}
 	}
 	
