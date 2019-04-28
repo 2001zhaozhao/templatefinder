@@ -144,7 +144,7 @@ public class TFIDFEngine {
 				}
 			}
 			
-			String word = wordBuilder.toString();
+			String word = wordBuilder.toString().toLowerCase();
 			if(word.isEmpty()) continue;
 			// Generate final weight
 			double finalWeight = 1;
@@ -155,7 +155,8 @@ public class TFIDFEngine {
 				finalWeight *= 0.25;
 			}
 			finalWeight /= size + 1.0;
-
+			
+			// Add previous weights
 			if(out.containsKey(word)) finalWeight += out.get(word);
 			
 			// Add finished word to the word list
@@ -209,9 +210,10 @@ public class TFIDFEngine {
 			}
 			
 			// Divide the weights
-			double divisor = ((appearances * 1.0 + 1) / count);
+			double idf = Math.log(count * 1.0 / (1 + appearances));
+			
 			for(Entry<TemplateString, Double> tEntry : templateWeightsMap.entrySet()) {
-				tEntry.setValue(tEntry.getValue() / divisor * STRING_WEIGHT_WITHIN_TEMPLATE_MULTIPLIER);
+				tEntry.setValue(tEntry.getValue() * idf * STRING_WEIGHT_WITHIN_TEMPLATE_MULTIPLIER);
 			}
 		}
 	}
@@ -234,9 +236,11 @@ public class TFIDFEngine {
 			}
 			
 			// Divide the weights
-			double divisor = ((appearances * 1.0 + 1) / count);
+			double idf = Math.log(count * 1.0 / (1 + appearances));
+
+			//double divisor = ((appearances * 1.0 + 1) / count);
 			for(Entry<TemplateString, Double> tEntry : templateWeightsMap.entrySet()) {
-				tEntry.setValue(tEntry.getValue() / divisor * STRING_WEIGHT_ACROSS_TEMPLATES_MULTIPLIER);
+				tEntry.setValue(tEntry.getValue() * idf * STRING_WEIGHT_ACROSS_TEMPLATES_MULTIPLIER);
 			}
 		}
 	}

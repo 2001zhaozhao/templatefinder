@@ -34,7 +34,7 @@ public class InputProcessing {
 		
 		// Calculate most appropriate template
 		TemplateString maxTemplate = null;
-		double max = -1;
+		OutputWeight max = new OutputWeight(0,0,0,0);
 		TreeSet<Entry<TemplateString, Double>> msgSet = new TreeSet<>(new Comparator<Entry<TemplateString, Double>>()  {
 			@Override
 			public int compare(Entry<TemplateString, Double> o1, Entry<TemplateString, Double> o2) {
@@ -45,9 +45,9 @@ public class InputProcessing {
 		});
 		for(Entry<TemplateString, OutputWeight> entry : weight.entrySet()) {
 			if(entry.getKey() == null) continue;
-			if(entry.getValue().doubleValue() > max) {
+			if(entry.getValue().doubleValue() > max.doubleValue()) {
 				maxTemplate = entry.getKey();
-				max = entry.getValue().doubleValue();
+				max = entry.getValue();
 			}
 			msgSet.add(new SimpleEntry<TemplateString, Double>(entry.getKey(), entry.getValue().doubleValue()));
 		}
@@ -61,7 +61,12 @@ public class InputProcessing {
 			if(ps != null) ps.println(((long) (entry.getValue() * 1000000)) / 1000000.0 + " | " + entry.getKey().toImportantInfoString());
 		}
 		
-		if(ps != null) ps.println("Most likely template:   " + maxTemplate);
+		if(ps != null) {
+			ps.println("Most likely template:   " + maxTemplate);
+			ps.println("Template weight: " + max.getTemplateWeightContribution() + 
+					" | String weight in template: " + max.getStringWeightInTemplateContribution() + "(" + (int) (max.inTemplateWeightPortion * 100) + "%)" +
+					" | String weight across templates: " + max.getStringWeightAcrossTemplatesContribution());
+		}
 		
 		return maxTemplate;
 	}
