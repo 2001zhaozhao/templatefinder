@@ -331,7 +331,7 @@ public class App {
 									TFIDFEngine.tfidfStringWeightsWithinTemplate(stringWeightsByWord, allStrings);
 									
 									synchronized(stringWeightsInTemplate) {
-										stringWeightsInTemplate.putAll(stringWeightsByWord);
+										TFIDFEngine.merge(stringWeightsInTemplate, stringWeightsByWord);
 									}
 								}
 							});
@@ -380,8 +380,10 @@ public class App {
 					}
 				}
 			}
+			boolean allTemplatesLoaded;
+			synchronized(templates) { allTemplatesLoaded = templates.size() >= templateCount; }
 			// Check if all templates themselves have been loaded. If this is the case, start the stringWeightsAcrossTemplates threads
-			if(!stringWeightsAcrossTemplatesThreadsStarted && templates.size() >= templateCount) {
+			if(!stringWeightsAcrossTemplatesThreadsStarted && allTemplatesLoaded) {
 				stringWeightsAcrossTemplatesThreadsStarted = true;
 				ArrayList<Template> templatesCopy = new ArrayList<>(templates);
 				for(Template template : templatesCopy) {
@@ -403,7 +405,7 @@ public class App {
 								TFIDFEngine.tfidfStringWeightsInAllTemplates(stringWeightsByWord, TFIDFEngine.listForFormat(templatesCopy, BASE_FORMAT));
 								
 								synchronized(stringWeightsAcrossTemplates) {
-									stringWeightsAcrossTemplates.putAll(stringWeightsByWord);
+									TFIDFEngine.merge(stringWeightsAcrossTemplates, stringWeightsByWord);
 								}
 							}
 						});

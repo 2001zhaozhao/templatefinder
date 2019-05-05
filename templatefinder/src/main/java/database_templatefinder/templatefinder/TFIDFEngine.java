@@ -622,6 +622,11 @@ public class TFIDFEngine {
 		// since we are fairly sure which template the string is from - and vice versa.
 		double inTemplateWeight = max / Math.sqrt(lengthSquaredOfTemplateWeights + Double.MIN_NORMAL);
 		
+		// Square inTemplateWeight portion so competition between a small number of templates more effectively drives the weighting to
+		// consider the weight across templates. In the event of perfect competition between 2 templates the portion will now be
+		// 1/2 instead of 1/sqrt(2)
+		inTemplateWeight *= inTemplateWeight;
+		
 		HashMap<TemplateString, OutputWeight> out = new HashMap<>();
 		
 		for(TemplateString tStr : stringWeightInTemplate.keySet()) {
@@ -804,6 +809,20 @@ public class TFIDFEngine {
 			out.put(entry.getKey(), entry.getValue() * scale);
 		}
 		return out;
+	}
+	
+	/**
+	 * "Deep"-merges a map of HashMaps, combining all keys of individual child maps in the "from" map into the "to" map
+	 */
+	public static <T,S,V extends Object> void merge(Map<T, HashMap<S, V>> to, Map<T, HashMap<S, V>> from) {
+		for(Entry<T, HashMap<S, V>> entry : from.entrySet()) {
+			if(to.containsKey(entry.getKey())) {
+				to.get(entry.getKey()).putAll(entry.getValue());
+			}
+			else {
+				to.put(entry.getKey(), entry.getValue());
+			}
+		}
 	}
 }
 
