@@ -1,7 +1,10 @@
 package database_templatefinder.templatefinder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,6 +61,7 @@ public class App {
 	public static PatriciaTrie<String> allWordsInReverse = new PatriciaTrie<>();
 	
 	public static final String BASE_FORMAT = "English";
+	public static final String TEMPLATES_FILE_URL = "https://raw.githubusercontent.com/hms-bcl/Templates/master/templates.json";
 
 	public static void main( String[] args )
 	{
@@ -248,9 +252,29 @@ public class App {
 		// -----Load templates (multi core)
 		long startTimeJson = System.currentTimeMillis();
 		System.out.println("Loaded word list and equivalence files in " + (startTimeJson - startTime) + "ms.");
+		
+		// Attempt to get template file from GitHub
+		System.out.println("Attempting to download templates.json from GitHub...");
+		InputStream stream = null;
+		URL url;
+		try {
+			url = new URL(TEMPLATES_FILE_URL);
+			InputStream is = url.openStream();
+			if(is != null) stream = is;
+			
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		}
+		
+		// Local
+		if(stream == null) {
+			System.out.println("File download failed, using local fallback.");
+			stream = App.class.getResourceAsStream("/templates.json");
+		}
+		
 		JsonArray json;
 		try {
-			json = new JsonParser().parse(new InputStreamReader(App.class.getResourceAsStream("/templates.json"))).getAsJsonArray();
+			json = new JsonParser().parse(new InputStreamReader(stream)).getAsJsonArray();
 		} catch (JsonIOException | JsonSyntaxException e1) {
 			System.out.println("Could not find file");
 			return;
