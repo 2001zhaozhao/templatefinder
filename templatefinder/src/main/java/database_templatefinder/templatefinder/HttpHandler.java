@@ -26,13 +26,15 @@ public class HttpHandler extends NanoHTTPD {
     @Override
     public Response serve(IHTTPSession session) {
     	try {
-            String msg = "<html><body>";
             Map<String, String> parms = session.getParms();
             if (parms.get("querystring") == null) {
+                String msg = "<html><body>";
             	msg += "<h1>Template checker</h1>\n";
                 msg += "<form action='?' method='get'>\n  <p>Please input string to check: <input type='text' name='querystring'>" + 
                 		" <input type='checkbox' name='userfriendly' value='true'> User friendly mode (uses outdated processing method)<br></p>\n" + "</form>\n";
+                return newFixedLengthResponse(msg + "</body></html>");
             } else if("true".equals(parms.get("userfriendly"))) {
+                String msg = "<html><body>";
             	// Check template
             	final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 try (PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
@@ -51,12 +53,12 @@ public class HttpHandler extends NanoHTTPD {
                 catch(Exception ex) {
                 	ex.printStackTrace();
                 }
+                return newFixedLengthResponse(msg + "</body></html>");
             }
             else {
             	JsonArray js = InputProcessing.toJson(InputProcessing.process(parms.get("querystring")));
-            	msg += "<p>" + js.toString() + "</p>";
+            	return newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "application/json", js.toString());
             }
-            return newFixedLengthResponse(msg + "</body></html>");
     	}
     	catch(Exception ex) {
     		ex.printStackTrace();
